@@ -1,5 +1,6 @@
 package com.cydeo.controller;
 
+import com.cydeo.dto.AddressDTO;
 import com.cydeo.dto.ResponseWrapper;
 import com.cydeo.dto.StudentDTO;
 import com.cydeo.dto.TeacherDTO;
@@ -58,6 +59,14 @@ public class SchoolController {
         return ResponseEntity.
                 ok(new ResponseWrapper("Address "+id+"is successfully retrieved"
                 ,addressService.findById(id)));
+    }
+
+    @PutMapping("/address/{id}")
+    public ResponseEntity<ResponseWrapper> updateUserAddress(@PathVariable("id") Long id,@RequestBody AddressDTO addressDTO) throws Exception {
+        addressDTO.setId(id);
+        return ResponseEntity
+                .ok(new ResponseWrapper("Address of "+id+" is updated"
+                        ,addressService.update(addressDTO)));
     }
 }
 

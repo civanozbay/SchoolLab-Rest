@@ -59,10 +59,6 @@ public class SchoolController {
 
     @GetMapping("/address/{id}")
     public ResponseEntity<ResponseWrapper> getUserAddress(@PathVariable("id") Long id) throws Exception {
-        AddressDTO address = addressService.findById(id);
-        CityDTO cityTemperature = weatherClient.getCityInfo(address.getCity());
-        address.setCurrentTemperature(cityTemperature.getCurrent().getTemperature());
-
         return ResponseEntity.
                 ok(new ResponseWrapper("Address "+id+"is successfully retrieved"
                 ,addressService.findById(id)));

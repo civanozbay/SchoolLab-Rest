@@ -1,10 +1,15 @@
 package com.cydeo.service.impl;
 
+import com.cydeo.client.FlagClient;
+import com.cydeo.client.WeatherClient;
 import com.cydeo.dto.AddressDTO;
+import com.cydeo.dto.CityDTO;
+import com.cydeo.dto.flag.CountryDTO;
 import com.cydeo.entity.Address;
 import com.cydeo.util.MapperUtil;
 import com.cydeo.repository.AddressRepository;
 import com.cydeo.service.AddressService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,13 +18,19 @@ import java.util.stream.Collectors;
 
 @Service
 public class AddressServiceImpl implements AddressService {
-
+    @Value("${access_key}")
+    private String accessKey ;
     private final AddressRepository addressRepository;
     private final MapperUtil mapperUtil;
+    private final WeatherClient weatherClient;
+    private final FlagClient flagClient;
 
-    public AddressServiceImpl(AddressRepository addressRepository, MapperUtil mapperUtil) {
+
+    public AddressServiceImpl(AddressRepository addressRepository, MapperUtil mapperUtil, WeatherClient weatherClient, FlagClient flagClient) {
         this.addressRepository = addressRepository;
         this.mapperUtil = mapperUtil;
+        this.weatherClient = weatherClient;
+        this.flagClient = flagClient;
     }
 
     @Override
@@ -34,7 +45,13 @@ public class AddressServiceImpl implements AddressService {
     public AddressDTO findById(Long id) throws Exception {
         Address foundAddress = addressRepository.findById(id)
                 .orElseThrow(() -> new Exception("No Address Found!"));
-        return mapperUtil.convert(foundAddress, new AddressDTO());
+
+        AddressDTO addressDTO = mapperUtil.convert(foundAddress, new AddressDTO());
+        addressDTO.setCurrentTemperature(getCurrentWeather(addressDTO.getCity()).getCurrent().getTemperature());
+
+        addressDTO.setFlag(getFlag(addressDTO.getCountry()));
+
+        return addressDTO;
     }
 
     @Override
@@ -66,6 +83,14 @@ public class AddressServiceImpl implements AddressService {
 
         return mapperUtil.convert(addressToSave, new AddressDTO());
 
+    }
+
+    private CityDTO getCurrentWeather(String city){
+        return weatherClient.getCurrentWeather(accessKey,city);
+    }
+
+    private String getFlag(String country){
+        return flagClient.getFlag(country).get(0).getFlags().getPng();
     }
 
 }
